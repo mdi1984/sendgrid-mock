@@ -14,6 +14,11 @@ else
     builder.Services.AddSingleton<IMailStorage, FileMailStorage>();
 }
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -35,7 +40,7 @@ app.MapPost("/v3/mail/send", async (HttpContext context, [FromBody] SendGridMess
     {
         return Results.BadRequest("Invalid message format.");
     }
-    
+
     // Basic validation (optional, can be expanded)
     if (message.From == null)
     {
@@ -64,3 +69,7 @@ app.MapDelete("/api/mails", async (IMailStorage storage) =>
 app.Run();
 
 public partial class Program { }
+
+// TODO:
+// - reduce image size
+// - remove dockerfile user

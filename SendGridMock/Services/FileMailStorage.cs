@@ -6,7 +6,7 @@ namespace SendGridMock.Services;
 public class FileMailStorage : IMailStorage
 {
     private readonly string _storagePath;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly AppJsonSerializerContext _jsonContext;
 
     public FileMailStorage(IConfiguration configuration)
     {
@@ -16,11 +16,12 @@ public class FileMailStorage : IMailStorage
             Directory.CreateDirectory(_storagePath);
         }
         
-        _jsonOptions = new JsonSerializerOptions 
+        var jsonOptions = new JsonSerializerOptions 
         { 
             WriteIndented = true,
             PropertyNameCaseInsensitive = true
         };
+        _jsonContext = new AppJsonSerializerContext(jsonOptions);
     }
 
     public async Task<string> StoreAsync(SendGridMessage message)
@@ -32,7 +33,7 @@ public class FileMailStorage : IMailStorage
         };
         
         var filePath = Path.Combine(_storagePath, $"{storedMessage.Id}.json");
-        var json = JsonSerializer.Serialize(storedMessage, _jsonOptions);
+        var json = JsonSerializer.Serialize(storedMessage, _jsonContext.StoredMessage);
         await File.WriteAllTextAsync(filePath, json);
 
         return storedMessage.Id;
@@ -49,7 +50,7 @@ public class FileMailStorage : IMailStorage
             try 
             {
                 using var stream = file.OpenRead();
-                var message = await JsonSerializer.DeserializeAsync<StoredMessage>(stream, _jsonOptions);
+                var message = await JsonSerializer.DeserializeAsync(stream, _jsonContext.StoredMessage);
                 if (message != null)
                 {
                     messages.Add(message);

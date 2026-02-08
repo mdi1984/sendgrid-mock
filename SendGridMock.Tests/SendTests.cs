@@ -11,12 +11,12 @@ using System.Reflection.Metadata;
 
 namespace SendGridMock.Tests;
 
-public class UnitTest1 : IClassFixture<WebApplicationFactory<Program>>
+public class SendTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
 
-    public UnitTest1(WebApplicationFactory<Program> factory)
+    public SendTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory.WithWebHostBuilder(builder =>
         {
