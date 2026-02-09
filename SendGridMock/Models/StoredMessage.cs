@@ -1,7 +1,3 @@
-using System;
-using System.Security.Cryptography;
-using System.Text;
-
 namespace SendGridMock.Models;
 
 public class StoredMessage
@@ -13,17 +9,13 @@ public class StoredMessage
     private static string GenerateMessageId()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        var sb = new StringBuilder(22);
-        
-        // Use RandomNumberGenerator for cryptographically strong random values
-        // or Random.Shared for performance if crypto strength isn't strictly required for mocking.
-        // SendGrid IDs are opaque, but usually look random.
-        
-        for (int i = 0; i < 22; i++)
+        // Use Random.Shared - crypto strength isn't needed for mock message IDs
+        return string.Create(22, chars, static (span, chars) =>
         {
-            sb.Append(chars[RandomNumberGenerator.GetInt32(chars.Length)]);
-        }
-
-        return sb.ToString();
+            for (int i = 0; i < span.Length; i++)
+            {
+                span[i] = chars[Random.Shared.Next(chars.Length)];
+            }
+        });
     }
 }
