@@ -133,7 +133,7 @@
                     <div class="flex-1 overflow-auto bg-white relative">
                         <!-- HTML View -->
                         <div v-if="currentTab === 'HTML' && htmlContent" class="h-full w-full">
-                            <iframe ref="mailFrame" class="w-full h-full border-0" :srcdoc="htmlContent" sandbox="allow-same-origin"></iframe>
+                            <iframe ref="mailFrame" class="w-full h-full border-0" :srcdoc="htmlContent" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
                         </div>
                         <div v-else-if="currentTab === 'HTML'" class="flex h-full items-center justify-center text-gray-400 italic">
                             No HTML content
@@ -279,11 +279,18 @@
                                 const cid = att.content_id.replace(/^<|>$/g, ''); // Remove angle brackets if present
                                 
                                 // Replace cid:<id> with data URI (global replacement)
-                                // Escaping cid for regex safety might be good, but alphanumeric is standard
-                                const regex = new RegExp(`cid:${cid}`, 'g');
+                                // Use word boundary to avoid partial matches (e.g. cid:header matching cid:header_w_margins)
+                                const escaped = cid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                const regex = new RegExp(`cid:${escaped}\\b`, 'g');
                                 html = html.replace(regex, dataUri);
                             }
                         });
+                    }
+                    // Inject <base target="_blank"> so links open in a new tab instead of inside the iframe
+                    if (html.includes('<head>') || html.includes('<head ')) {
+                        html = html.replace(/<head([^>]*)>/i, '<head$1><base target="_blank">');
+                    } else {
+                        html = '<base target="_blank">' + html;
                     }
                     return html;
                 });
